@@ -10,7 +10,7 @@
 {% block content %}
 	<div class="row">
 		<div class="col-md-8 col-sm-12">
-			<h1 class="py-3 px-2 bg-dark text-light d-flex justify-content-between">News Feed <a href="{% url 'chat:add_post' %}"><i class="fas fa-plus text-light"></i></a></h1>
+			<h1 class="py-3 px-2 bg-dark text-light d-flex justify-content-between">Artefacts For You <a href="{% url 'chat:add_post' %}"><i class="fas fa-plus text-light"></i></a></h1>
 			<div class="container bg-grey">
 				{% for post in posts %}
 					<div class=" my-4 card" style="box-shadow: #484646 0px 4px 1px">

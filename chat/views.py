@@ -5,7 +5,7 @@ from django.views.decorators.http import require_POST
 
 from .forms import CommentForm, PostForm
 from .models import Post
-
+from .utils import s3
 
 @login_required
 def home(request):
@@ -24,19 +24,30 @@ def home(request):
 @login_required
 def add_post(request):
 	""" create a new posts to user """
-	# handle only POSTed Data
 	if request.method == 'POST':
 		form = PostForm(request.POST, request.FILES)
 		# validate form based on form definition
 		if form.is_valid():
-			post = form.save(commit=False)
-			# add the post user to the existing form
-			# this method can be declared in the postForm easily by overiding the save() method
-			# and adding user before saving.
-			# See implementation of CommentForm
-			post.user = request.user
-			post.save()
-			return redirect('chat:home')
+			# Check if any text field is empty (contains only whitespace)
+			if any(not str(field).strip() for field in form.cleaned_data.values()):
+				form.add_error(None, "All fields must be filled out")
+			else:
+				post = form.save(commit=False)
+				post.user = request.user
+
+				print(request.FILES)
+
+				if 'picture' in request.FILES:
+					success, result = s3.upload_to_s3(request.FILES['picture'],folder="sqn-data")
+
+					if success:
+						print(result)
+					else:
+						form.add_error(None, f"Failed to upload image: {result}")
+						return render(request, 'chat/add_post.html', {'form': form})
+
+				post.save()
+				return redirect('chat:home')
 	else:
 		form = PostForm()
 	return render(request, 'chat/add_post.html', {'form': form})
